@@ -92,6 +92,24 @@ const validateRequest = (
   appRoute: AppRoute,
   options: TsRestExpressOptions<AppRouter>,
 ) => {
+  // If validation disabled, pass through raw values
+  if (options.useDefaultValidation === false) {
+    const query = options.jsonQuery
+      ? parseJsonQueryObject(req.query as Record<string, string>)
+      : req.query;
+
+    return {
+      paramsResult: { value: req.params, error: undefined, schemasUsed: [] },
+      headersResult: { value: req.headers, error: undefined, schemasUsed: [] },
+      queryResult: { value: query, error: undefined, schemasUsed: [] },
+      bodyResult: {
+        value: 'body' in appRoute ? (req.body as unknown) : undefined,
+        error: undefined,
+        schemasUsed: [],
+      },
+    } as const;
+  }
+
   const paramsResult = validateIfSchema(req.params, appRoute.pathParams, {
     passThroughExtraKeys: true,
   });
@@ -323,6 +341,7 @@ export const createExpressEndpoints = <TRouter extends AppRouter>(
     logInitialization: true,
     jsonQuery: false,
     responseValidation: false,
+  useDefaultValidation: true,
     requestValidationErrorHandler: 'default',
   },
 ) => {

@@ -49,6 +49,19 @@ class TsRestValidatorPipe implements PipeTransform {
     const req: Request | FastifyRequest = ctx.switchToHttp().getRequest();
     const options = evaluateTsRestOptions(this.globalOptions, ctx);
 
+    if (options.useDefaultValidation === false) {
+      const query = options.jsonQuery
+        ? parseJsonQueryObject(req.query as Record<string, string>)
+        : req.query;
+
+      return {
+        query: (query as any) ?? req.query,
+        params: (req.params as any),
+        body: (req.body as any),
+        headers: req.headers as Request['headers'],
+      } as unknown as TsRestRequestShape<AppRouteMutation>;
+    }
+
     const pathParamsResult = validateIfSchema(req.params, appRoute.pathParams, {
       passThroughExtraKeys: true,
     });

@@ -78,6 +78,26 @@ const validateRequest = <TPlatformArgs, TRequestExtension>(
   appRoute: AppRoute,
   options: ServerlessHandlerOptions<TPlatformArgs, TRequestExtension>,
 ) => {
+  if (options.useDefaultValidation === false) {
+    const query = options.jsonQuery
+      ? parseJsonQueryObject(req.query as Record<string, string>)
+      : req.query;
+
+    const headers: Record<string, string> = {};
+    req.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+
+    return {
+      paramsResult: { value: req.params, schemasUsed: [] as any[] },
+      headersResult: { value: headers, schemasUsed: [] as any[] },
+      queryResult: { value: query, schemasUsed: [] as any[] },
+      bodyResult: {
+        value: 'body' in appRoute ? (req.content as unknown) : undefined,
+        schemasUsed: [] as any[],
+      },
+    } as const;
+  }
   const paramsResult = validateIfSchema(req.params, appRoute.pathParams, {
     passThroughExtraKeys: true,
   });

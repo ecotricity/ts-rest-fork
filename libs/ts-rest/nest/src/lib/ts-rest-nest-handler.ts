@@ -362,32 +362,48 @@ export class TsRestHandlerInterceptor implements NestInterceptor {
 
     const options = evaluateTsRestOptions(this.globalOptions, ctx);
 
-    const paramsResult = validateIfSchema(req.params, appRoute.pathParams, {
-      passThroughExtraKeys: true,
-    });
+    // Short-circuit validation if disabled, otherwise validate as usual
+    const paramsResult =
+      options.useDefaultValidation === false
+        ? { value: req.params, error: undefined as any, schemasUsed: [] as any[] }
+        : validateIfSchema(req.params, appRoute.pathParams, {
+            passThroughExtraKeys: true,
+          });
 
-    const headersResult = validateMultiSchemaObject(
-      req.headers,
-      appRoute.headers,
-    );
+    const headersResult =
+      options.useDefaultValidation === false
+        ? { value: req.headers, error: undefined as any, schemasUsed: [] as any[] }
+        : validateMultiSchemaObject(req.headers, appRoute.headers);
 
     const query = options.jsonQuery
       ? parseJsonQueryObject(req.query as Record<string, string>)
       : req.query;
 
-    const queryResult = validateIfSchema(query, appRoute.query);
+    const queryResult =
+      options.useDefaultValidation === false
+        ? { value: query, error: undefined as any, schemasUsed: [] as any[] }
+        : validateIfSchema(query, appRoute.query);
 
-    const bodyResult = validateIfSchema(
-      req.body,
-      'body' in appRoute ? appRoute.body : null,
-    );
+    const bodyResult =
+      options.useDefaultValidation === false
+        ? {
+            value: 'body' in appRoute ? (req.body as unknown) : undefined,
+            error: undefined as any,
+            schemasUsed: [] as any[],
+          }
+        : validateIfSchema(
+            req.body,
+            'body' in appRoute ? appRoute.body : null,
+          );
 
     const isHeadersInvalid =
-      headersResult.error && options.validateRequestHeaders;
+      headersResult.error && options.validateRequestHeaders && options.useDefaultValidation !== false;
 
-    const isQueryInvalid = queryResult.error && options.validateRequestQuery;
+    const isQueryInvalid =
+      queryResult.error && options.validateRequestQuery && options.useDefaultValidation !== false;
 
-    const isBodyInvalid = bodyResult.error && options.validateRequestBody;
+    const isBodyInvalid =
+      bodyResult.error && options.validateRequestBody && options.useDefaultValidation !== false;
 
     if (
       paramsResult.error ||

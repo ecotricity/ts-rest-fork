@@ -90,6 +90,11 @@ export type TsRestExpressOptions<T extends AppRouter> = {
   logInitialization?: boolean;
   jsonQuery?: boolean;
   responseValidation?: boolean;
+  /**
+   * When false, disables automatic request validation. Raw request values are passed to handlers.
+   * Defaults to true (current behavior).
+   */
+  useDefaultValidation?: boolean;
   globalMiddleware?: TsRestRequestHandler<FlattenAppRouter<T>>[];
   requestValidationErrorHandler?:
     | 'default'

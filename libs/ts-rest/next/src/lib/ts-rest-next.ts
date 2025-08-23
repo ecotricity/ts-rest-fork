@@ -77,6 +77,11 @@ type CreateNextRouterOptions = {
   jsonQuery?: boolean;
   responseValidation?: boolean;
   throwRequestValidation?: boolean;
+  /**
+   * When false, disables automatic request validation. Raw request values are passed to handlers.
+   * Defaults to true (current behavior).
+   */
+  useDefaultValidation?: boolean;
   errorHandler?: (
     err: unknown,
     req: NextApiRequest,
@@ -301,6 +306,7 @@ const handlerFactory = (
       jsonQuery = false,
       responseValidation = false,
       throwRequestValidation = false,
+  useDefaultValidation = true,
     } = options || {};
 
     const args = getArgumentsFromRequest(req);
@@ -311,22 +317,39 @@ const handlerFactory = (
       return;
     }
 
-    const pathParamsResult = validateIfSchema(pathParams, route.pathParams, {
-      passThroughExtraKeys: true,
-    });
+    // When validation disabled, pass-through raw values; otherwise validate
+  const pathParamsResult =
+      useDefaultValidation === false
+    ? { value: pathParams, error: undefined, schemasUsed: [] as any[] }
+        : validateIfSchema(pathParams, route.pathParams, {
+            passThroughExtraKeys: true,
+          });
 
-    const headersResult = validateMultiSchemaObject(req.headers, route.headers);
+  const headersResult =
+      useDefaultValidation === false
+    ? { value: req.headers as any, error: undefined, schemasUsed: [] as any[] }
+        : validateMultiSchemaObject(req.headers, route.headers);
 
     query = jsonQuery
       ? parseJsonQueryObject(query as Record<string, string>)
       : req.query;
 
-    const queryResult = validateIfSchema(query, route.query);
+  const queryResult =
+      useDefaultValidation === false
+    ? { value: query as any, error: undefined, schemasUsed: [] as any[] }
+        : validateIfSchema(query, route.query);
 
-    const bodyResult = validateIfSchema(
-      req.body,
-      'body' in route ? route.body : null,
-    );
+  const bodyResult =
+      useDefaultValidation === false
+        ? {
+      value: ('body' in route ? (req.body as unknown) : undefined) as any,
+      error: undefined,
+      schemasUsed: [] as any[],
+          }
+        : validateIfSchema(
+            req.body,
+            'body' in route ? route.body : null,
+          );
 
     try {
       if (
@@ -335,6 +358,10 @@ const handlerFactory = (
         queryResult.error ||
         bodyResult.error
       ) {
+        // If validation is disabled, don't auto-handle validation errors
+        if (useDefaultValidation === false) {
+          // fall through to handler without blocking
+        } else {
         if (throwRequestValidation) {
           const useLegacyZod = areAllSchemasLegacyZod([
             ...pathParamsResult.schemasUsed,
@@ -375,6 +402,7 @@ const handlerFactory = (
         if (bodyResult.error) {
           res.status(400).json(bodyResult.error);
           return;
+        }
         }
       }
 

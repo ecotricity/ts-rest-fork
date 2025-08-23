@@ -7,6 +7,11 @@ export type TsRestOptions = {
   validateRequestHeaders?: boolean;
   validateRequestQuery?: boolean;
   validateRequestBody?: boolean;
+  /**
+   * When false, disables automatic request validation. Raw request values are passed to handlers.
+   * Defaults to true (current behavior).
+   */
+  useDefaultValidation?: boolean;
 };
 
 export type EvaluatedTsRestOptions = Required<TsRestOptions>;
@@ -18,6 +23,7 @@ const defaultOptions = {
   validateRequestHeaders: true,
   validateRequestQuery: true,
   validateRequestBody: true,
+  useDefaultValidation: true,
 } satisfies EvaluatedTsRestOptions;
 
 export const evaluateTsRestOptions = (
