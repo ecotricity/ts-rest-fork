@@ -187,7 +187,7 @@
     "tsd": "^0.22.0",
     "type-fest": "^3.11.1",
     "typescript": "5.2.2",
-    "vite": "4.5.3",
+    "vite": "5.4.21",
     "vite-plugin-dts": "2.3.0",
     "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-solid": "2.5.0",
