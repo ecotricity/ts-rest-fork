@@ -15,7 +15,7 @@
   "dependencies": {
     "@ts-rest/core": "../../dist/libs/ts-rest/core",
     "@ts-rest/express": "../../dist/libs/ts-rest/express",
-    "express": "5.0.1",
+    "express": "5.1.0",
     "zod": "3.25.28"
   }
 }
