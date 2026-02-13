@@ -174,7 +174,7 @@
     "parse-multipart-data": "^1.5.0",
     "prettier": "^3.0.3",
     "prisma": "6.3.1",
-    "qs": "^6.11.0",
+    "qs": "^6.14.2",
     "rollup": "^3.10.1",
     "rollup-plugin-preserve-directives": "^0.4.0",
     "sass": "1.55.0",
